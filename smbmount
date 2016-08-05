@@ -1,0 +1,76 @@
+#!/bin/bash
+
+# store it in /usr/local/bin/
+
+print_help() 
+{
+  echo usage: smbmount [OPTION] samba_path mount_point
+  echo Mount samba easily in Mac OS
+  echo 
+  echo Option:
+  echo -o, --auto-open    Automatically open in Finder
+  echo
+  echo Simple mount:
+  echo     smbmount //username:passworld@machine/share_point /Volume/machine_share
+  echo
+}
+
+# option parsing
+for i in "$@"
+do
+  case $i in
+    -o|--auto-open)
+    # auto open in Finder
+    auto_open=1
+    shift
+    ;;
+    --help)
+    print_help
+    exit 0
+    ;;
+  esac
+done
+
+if [ $# -lt 1 ]; then
+  echo smbmount: missing samba path
+  echo Try 'smbmount --help' for more information
+  exit 2
+fi
+
+if [ $# -lt 2 ]; then
+  echo smbmount: missing mount point
+  echo Try 'smbmount --help' for more information
+  exit 2
+fi
+
+samba_path=$1
+mount_point=$2
+
+# replace smb:// protocol
+SMB_PROTOCOL_PREFIX="smb://"
+clean_path="${samba_path/$SMB_PROTOCOL_PREFIX///}"
+
+# make dir for mount point
+if [ ! -d $mount_point ]; then
+  mkdir $mount_point
+fi
+
+# check existing mount point
+exist_mount_point=$(df | grep $clean_path | awk '{print $9}')
+if [ -z $exist_mount_point ]; then 
+  # do mounting
+  mount -t smbfs $clean_path $2
+  if [ $? -ne 0 ]; then
+    exit 1
+  else 
+    echo Mounted at $2
+  fi
+else
+  # show mounting
+  echo Has being mounted at $exist_mount_point
+fi
+
+# execute open folder in finder
+if [ ! -z $auto_open ]; then 
+  open $mount_point
+fi
