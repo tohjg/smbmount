@@ -16,6 +16,6 @@ $ smbmount //username:password@machine/share/path /Volumes/mount_point
 ## installation
 ```sh
 $ curl -s https://raw.githubusercontent.com/tohjg/smbmount/master/install.sh | bash
-```sh
+```
 
 or clone from this repo and execute install.sh
